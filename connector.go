@@ -27,25 +27,26 @@ type Connector interface {
 }
 
 type RedisConnector struct {
-	rds *redis.Client
+	rds    *redis.Client
+	prefix string
 }
 
-func NewRedisConnector(rds *redis.Client) *RedisConnector {
-	return &RedisConnector{rds: rds}
+func NewRedisConnector(keyPrefix string, rds *redis.Client) *RedisConnector {
+	return &RedisConnector{rds: rds, prefix: keyPrefix}
 }
 
 func (r *RedisConnector) SetMaster(name string, expire time.Duration) error {
-	return r.rds.Set("master", name, expire).Err()
+	return r.rds.Set(r.prefix+"master", name, expire).Err()
 }
 
 func (r *RedisConnector) GetMaster() (name string, err error) {
-	return r.rds.Get("master").Result()
+	return r.rds.Get(r.prefix + "master").Result()
 }
 
 func (r *RedisConnector) Lock(expire time.Duration) (success bool, err error) {
-	return r.rds.SetNX("locker", 1, expire).Result()
+	return r.rds.SetNX(r.prefix+"locker", 1, expire).Result()
 }
 
 func (r *RedisConnector) Unlock() error {
-	return r.rds.Del("locker").Err()
+	return r.rds.Del(r.prefix + "locker").Err()
 }
