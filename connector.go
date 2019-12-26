@@ -40,7 +40,11 @@ func (r *RedisConnector) SetMaster(name string, expire time.Duration) error {
 }
 
 func (r *RedisConnector) GetMaster() (name string, err error) {
-	return r.rds.Get(r.prefix + "master").Result()
+	name, err = r.rds.Get(r.prefix + "master").Result()
+	if err != nil && err == redis.Nil {
+		err = nil
+	}
+	return
 }
 
 func (r *RedisConnector) Lock(expire time.Duration) (success bool, err error) {
